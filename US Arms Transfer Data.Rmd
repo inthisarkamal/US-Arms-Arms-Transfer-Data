@@ -1,0 +1,465 @@
+---
+title: "US ARMS TRANSFER DATA"
+author: "Inthisar Kamal"
+date: "09/12/2020"
+output: html_document
+---
+```{r}
+#install.packages("leaflet")
+#install.packages("widgetframe")
+#install.packages("htmlwidgets")
+#install.packages("rworldmap")
+#install.packages("emojifont")
+```
+
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+library(lubridate)
+library(maps)
+library(wesanderson)
+library(ggthemes)
+library(dplyr)
+library(extrafont)
+library(plyr)
+library(scales)
+library(janitor)
+library(readxl)
+library(countrycode)
+library(ggthemes)
+library(ggrepel)
+library(dslabs)
+library(leaflet)
+library(widgetframe)
+library(htmlwidgets)
+library(plotly)
+library(wesanderson)
+library(emojifont)
+```
+
+Top 20 Exporters of arms in the last 20 years
+
+```{r}
+Top_20_Recent <- read.csv("/Users/inthisarkamal/Desktop/DS4PP/Final Project/TER.csv")
+
+Top_20_Recent
+```
+
+
+```{r}
+Top_20_Recent2 <- Top_20_Recent [-c((21:23)),]
+```
+
+
+```{r}
+Top_20_Recent %>%
+  leaflet() %>%
+  addTiles() %>%
+  addMarkers(clusterOptions = markerClusterOptions(), label = ~Supplier) 
+```
+Top 20 Exporters from 2000 to 2019
+
+```{r}
+Top_20_AllTime <- read.csv("/Users/inthisarkamal/Desktop/DS4PP/Final Project/Top 20 Exporters.csv")
+```
+
+
+```{r}
+Top_20_1950_2000 <- Top_20_AllTime[-c(2001,2019)]
+
+Top_20_1950_2000
+```
+
+
+```{r}
+Top_20_1950_2000B <-Top_20_1950_2000 [-c((20:23)),]
+```
+
+
+```{r}
+Top_20_1950_2000B %>%
+  leaflet() %>%
+  addTiles() %>%
+  addMarkers(clusterOptions = markerClusterOptions(), label = ~Supplier) 
+```
+Top 20 Exporters between 1950 to 2000
+
+Which countries are the top exporters?
+
+```{r}
+Top_20 <- Top_20_AllTime [-c((21:23)),]
+Top_20
+  
+```
+```{r}
+names(Top_20) <- gsub ("X", "", names(Top_20))
+Top_20
+```
+
+```{r}
+colnames(Top_20)[colnames(Top_20) %in% c("Supplier", "1950.2019")] <- c("Exporter", "Total Value")
+Top_20
+```
+
+  
+```{r}
+Top_20 %>%
+  ggplot(mapping = aes(x=fct_reorder(Exporter, `Total Value`, .desc = FALSE), y= `Total Value`))+
+  geom_bar(stat="identity", position = "dodge", fill="lightblue")+
+  labs(title = "Top Exporters of Weapons, 1950-2019", y="Value of Sales In Millions", x="",  fill=FALSE)+
+  theme_classic()+
+  coord_flip()+
+  theme(legend.position = "none")+
+  theme(plot.title=element_text(hjust=0.5))+
+  scale_y_continuous(breaks = c(100000, 200000, 300000, 400000, 500000, 600000))
+
+```
+Looking at the top 100 companies in Arms Manufacturing
+
+```{r}
+Companies <- read.csv("/Users/inthisarkamal/Desktop/DS4PP/Final Project/Top_100_Companies.csv")
+```
+
+
+```{r}
+Companies <- Companies [-c(111,112,113,114,115,116,117,118,119,120),]
+Companies
+```
+
+
+
+```{r}
+Companies %>%
+  distinct(Country)
+```
+
+
+```{r}
+Pie_Companies_By_Nationality <-Companies %>%
+  count('Country')
+
+Pie_Companies_By_Nationality
+```
+
+
+```{r}
+Companies_By_Nationality <- Pie_Companies_By_Nationality [-c(1),]
+```
+
+
+```{r}
+Companies_By_Nationality
+```
+
+
+```{r}
+fcountry <- c(1, 1, 7, 4, 3, 3, 2, 5, 1, 10, 1, 4, 1, 1, 1, 2, 2, 1, 9, 49)
+```
+
+
+```{r}
+pie(fcountry, labels=c("Australia (1)", "Brazil (1)", "France (7)", "Germany (4)", "India (3)", "Israel (3)", "Italy (2)", "Japan (5)", "Poland (1)", "Russia (10)", "Singapore (1)", "South Korea (4)", "Spain (1)", "Sweden (1)", "Switzerland (1)", "Trans-European (2)", "Turkey (2)", "Ukraine (1)", "United Kingdom (9)", "United States (49)", main = "Nationality of Top 100 Companies"), cex=0.45)
+```
+#open in a separate window, labels appear cramped in smaller viewing window
+49 out of 100 of the top 100 companies are American companies. Let's look at revenue.
+
+
+```{r}
+Top_20
+```
+
+```{r}
+Finance <- read.csv("/Users/inthisarkamal/Desktop/DS4PP/Final Project/Top_5.csv")
+```
+
+
+```{r}
+Six_largest_Countries <- c("United States", "Russia", "Soviet Union", "China", "Germany", "United Kingdom", "France")
+
+Finance %>%
+  filter(Country %in% Six_largest_Countries) %>%
+  ggplot(mapping = aes(x = Year, y = Total, col = Country)) +
+  geom_line() +
+  labs(x= "Year",
+       y= "Total Value of Sales in Millions",
+       title = "Revenue Trends of Top 6 Weapons Exporters") +
+  scale_x_continuous(breaks = c(1950, 1960, 1970, 1980, 1990, 2000, 2010, 2019))+
+  theme_clean()
+```
+Graph above shows the revenue trends of the top six weapons manufacturing countries from 1950 to 2019. Note that Soviet Union breaks off around 1990 when Russia is formed.
+Clearly USA is the biggest exporter of arms. Let's see who they import to.
+
+
+
+```{r}
+Nation <- read.csv("/Users/inthisarkamal/Desktop/DS4PP/Final Project/Total_Exports.csv")
+```
+
+
+```{r}
+colnames(Nation) <- c("Year", "Country", "Value")
+Nation
+```
+Top US imports between 1950-1980: Cold War leading up to the Iranian Revolution
+  
+```{r}
+Top_Importers_50_to_80<-Nation %>%
+  filter(Year %in% c(1950:1980))%>%
+  group_by(Country) %>%
+  select(Country, Value) %>%
+  summarise_each(funs(sum)) %>%
+  arrange(desc(Value)) 
+Top_Importers_50_to_80
+```
+
+US imports between 1981-1992: Nearing the end of the Cold War & Gulf War
+```{r}
+Top_Importers_81_to_92<-Nation %>%
+  filter(Year %in% c(1981:1992))%>%
+  group_by(Country) %>%
+  select(Country, Value) %>%
+  summarise_each(funs(sum)) %>%
+  arrange(desc(Value))
+Top_Importers_81_to_92
+```
+
+US Imports between 1993-2000: Aftermath of the Gulf War, George Bush Senior & Bill Cliton's administration
+
+```{r}
+Top_Importers_93_to_2000<-Nation %>%
+  filter(Year %in% c(1993:2000))%>%
+  group_by(Country) %>%
+  select(Country, Value) %>%
+  summarise_each(funs(sum)) %>%
+  arrange(desc(Value))
+Top_Importers_93_to_2000
+```
+US imports from 2001 to 2006: War on Terror era
+
+```{r}
+Top_Importers_01_to_06<-Nation %>%
+  filter(Year %in% c(2001:2006))%>%
+  group_by(Country) %>%
+  select(Country, Value) %>%
+  summarise_each(funs(sum)) %>%
+  arrange(desc(Value))
+Top_Importers_01_to_06
+```
+US imports from 2007 to 2014: Arab Spring + Era of Civil Unrest
+
+
+```{r}
+Top_Importers_07_to_14<-Nation %>%
+  filter(Year %in% c(2007:2014))%>%
+  group_by(Country) %>%
+  select(Country, Value) %>%
+  summarise_each(funs(sum)) %>%
+  arrange(desc(Value))
+Top_Importers_07_to_14
+```
+
+Curious to see who UAE and Saudi Arabia, one of the US' biggest customers exports to
+
+```{r}
+UAE_Exports <- read.csv("/Users/inthisarkamal/Desktop/DS4PP/Final Project/UAE_Exports.csv")
+UAE_Exports
+```
+```{r}
+UAE_Exports <- UAE_Exports [-c(1:9),]
+UAE_Exports
+```
+```{r}
+names(UAE_Exports) <- gsub ("X", "", names(UAE_Exports))
+UAE_Exports
+```
+```{r}
+UAE_Exports %>%
+  select(TIV.of.arms.exports.from.UAE..1950.2019, `.70`)
+```
+UAE exporting to Libya (whom US refuses to trade with)
+
+
+
+```{r}
+Saudi_Exports <- read.csv("/Users/inthisarkamal/Desktop/DS4PP/Final Project/Saudi_Exports.csv")
+Saudi_Exports
+```
+```{r}
+Saudi_Exports <- Saudi_Exports [-c(1:9),]
+Saudi_Exports
+```
+```{r}
+names(Saudi_Exports) <- gsub ("X", "", names(Saudi_Exports))
+Saudi_Exports
+```
+Saudi exports to Palestine is interesting.
+
+```{r}
+Arab_Spring_Countries <- c("Egypt", "Libya", "Tunisia", "Morocco", "Yemen", "Bahrain")
+
+Nation %>%
+  filter(Country %in% Arab_Spring_Countries, Year > 2007) %>%
+  ggplot(mapping = aes(x= Year, y = Value, col = Country))+
+  geom_point()+
+  geom_line() +
+  facet_wrap(~Country)+
+  labs(x= "Year",
+       y= "Value of Sales in Millions",
+       title = "US Arms Transfers to Arab Spring Countries")+
+  scale_x_continuous(breaks = c(2008, 2012, 2016))
+```
+
+US does not transfer arms during Arab Spring to Libya and very little to Yemen, but greatly supports Egypt in arms even after publicly denouncing Hosnei Mubarak.
+
+US imports from 2015 to now
+
+```{r}
+Top_Importers_15_to_19<-Nation %>%
+  filter(Year %in% c(2015:2019))%>%
+  group_by(Country) %>%
+  select(Country, Value) %>%
+  summarise_each(funs(sum)) %>%
+  arrange(desc(Value))
+Top_Importers_15_to_19
+```
+
+```{r}
+colnames(Nation) <- c("Year", "Country", "Value")
+```
+
+Let's look at another hostile region of the world: The Indian Subcontinent
+
+
+```{r}
+Nation %>%
+  filter(Country == c("Pakistan", "India"))%>%
+  group_by(Year) %>%
+  arrange(desc(Year))
+```
+
+
+```{r}
+Nation %>%
+  filter(Country %in% c("Pakistan", "India"), Year %in% c(2015:2019)) %>%
+  group_by(Country)
+```
+
+
+```{r}
+Nation %>%
+  filter(Country %in% c("Pakistan", "India"), Year %in% c(1971:2019)) %>%
+  group_by(Country)%>%
+  ggplot(mapping=aes(x= Year, y= Value, col = Country)) + 
+  geom_point()+
+  geom_line()+
+  labs(x= "Year",
+       y= "Value of Sales in Millions",
+       title = "US Arms Transfers to Pakistan & India")
+```
+US relations with India start to pick up around the time an alt right government comes into power, relations with Pakistan decline, however 2005 until present, with tensions heated, supplying arms to both sides.
+
+China is one of the largest importers and exporters. Curious to see who exports to them.
+Who does China import from?
+
+```{r}
+China <- read.csv("/Users/inthisarkamal/Desktop/DS4PP/Final Project/China_Exports.csv")
+China
+```
+
+```{r}
+names(China) <- gsub ("X", "", names(China))
+
+China
+```
+
+
+```{r}
+China [2:72] <- lapply(China[2:72], as.numeric)
+
+China
+```
+
+
+```{r}
+China_modern<-China %>% 
+  select(-(2:51))
+China_modern
+```
+
+```{r}
+#China_modern<-China_modern[-c(1),] 
+```
+
+```{r}
+#China_modern2 <- China_modern %>%
+  #pivot_longer(`2000`:`2019`, names_to = "Year", values_to = "Total")
+#print(China_modern2)
+```
+
+```{r}
+China_modern <- China_modern [-c(241:280),]
+China_modern
+```
+```{r}
+China_modern %>%
+  filter(!is.na(Value))
+China_modern
+```
+```{r}
+China3<-China_modern %>%
+  group_by(Country) %>%
+  select(Country, Value) %>%
+  summarise_each(funs(sum)) %>%
+  arrange(desc(Value))
+China3
+```
+```{r}
+China3 <- China3 [-c(1),]
+China3
+```
+```{r}
+#China4 <- China3 [-c(3)]
+```
+
+
+```{r}
+China3 %>%
+  group_by(Country) %>%
+  select(Country, Value) %>%
+  summarise_each(funs(sum)) %>%
+  arrange(desc(Value))%>%
+  ggplot(mapping=aes(x=fct_reorder(Country, Value, .desc = FALSE), y=Value, fill=Country))+
+  geom_bar(stat = "identity", position = "dodge")+
+  labs(title = "China's biggest exporters", y = "VALUE (MILLIONS)", fill=FALSE)+
+  theme_classic()+
+  coord_flip()+
+  labs(x="")+
+  theme(legend.position = "none")+
+  theme(plot.title=element_text(hjust=0.5))
+
+China3
+```
+
+China's biggest exporters are US allies (aside from Russia)
+
+Let's look at how big of a share of France's exports are made up by China
+
+```{r}
+France <- read.csv("/Users/inthisarkamal/Desktop/DS4PP/Final Project/France Exports.csv")
+```
+
+```{r}
+France
+```
+```{r}
+names(France) <- gsub ("X", "", names(France))
+France
+```
+
+
+```{r}
+France %>%
+  select(Country, Total)
+```
+China is a significant importer of arms from France
